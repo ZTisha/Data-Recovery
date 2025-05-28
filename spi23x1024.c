@@ -49,10 +49,8 @@ Email: zakia.tisha@auburn.edu
 static int spi_fd;
 static uint32_t spi_speed = 5000000;
 
-// Modified: Selected device path (default to SPI0.0)
 static const char *selected_device_path = "/dev/spidev0.0";
 
-// Modified: Allow selecting device before spi_init
 void spi_set_device(const char *device) {
     selected_device_path = device;
 }
@@ -112,7 +110,6 @@ void spi_close() {
 
 
 // Addressing Helpers
-
 uint32_t compute_address(uint8_t segment_id, uint16_t offset) {
     if (segment_id >= MAX_SEGMENTS || offset >= SEGMENT_SIZE) {
         fprintf(stderr, "Invalid segment or offset\n");
@@ -122,7 +119,6 @@ uint32_t compute_address(uint8_t segment_id, uint16_t offset) {
 }
 
 // SPI Memory Access
-
 void spi_write_byte(uint8_t segment_id, uint16_t offset, uint8_t data) {
     uint32_t address = compute_address(segment_id, offset);
 
@@ -149,7 +145,7 @@ void spi_write_byte(uint8_t segment_id, uint16_t offset, uint8_t data) {
     }
 }
 
-// Modified: Use 24-bit addressing and named command macros
+
 uint8_t spi_read_byte(uint8_t segment_id, uint16_t offset) {
     uint32_t address = compute_address(segment_id, offset);
 
