@@ -1,5 +1,23 @@
 // spi23x1024.c – Segmented access driver for Microchip 23A1024
 
+/*
+SPI API for the 23K640 SRAM chip
+
+supports reading and writing in "Byte Operation"
+does not support reading status register
+does not support "Page Operation" or "Sequential Operation"
+does not support writing to status register
+Author: Amaar Ebrahim
+Email: aae0008@auburn.edu
+
+Modified by: Gaines Odom
+Email: gaines.odom@auburn.edu
+
+Modified by: Zakia Tamanna Tisha
+Email: zakia.tisha@auburn.edu
+
+*/
+
 #include <stdio.h>
 #include <stdint.h>
 #include <fcntl.h>
@@ -10,9 +28,8 @@
 #include <sys/ioctl.h>
 #include <linux/spi/spidev.h>
 
-// =====================
 // Constants and Settings
-// =====================
+
 #define SPI_READ_CMD     0x03     // Read command (same as 23A640)
 #define SPI_WRITE_CMD    0x02     // Write command (same as 23A640)
 #define SPI_MODE_REG_R   0x05     // Read Mode Register (RDMR)
@@ -26,9 +43,9 @@
 #define SPI_MAX_SPEED_HZ 20000000
 #define SPI_BITS_PER_WORD 8
 
-// =====================
+
 // Global Variables
-// =====================
+
 static int spi_fd;
 static uint32_t spi_speed = 5000000;
 
@@ -40,9 +57,9 @@ void spi_set_device(const char *device) {
     selected_device_path = device;
 }
 
-// =====================
+
 // SPI Initialization
-// =====================
+
 void spi_enable_sequential_mode() {
     uint8_t tx[2] = { SPI_MODE_REG_W, 0x40 }; // 0x40 = Sequential mode
     struct spi_ioc_transfer xfer = {
@@ -93,10 +110,9 @@ void spi_close() {
     close(spi_fd);
 }
 
-// =====================
+
 // Addressing Helpers
-// =====================
-// Modified: Computes absolute 24-bit address from segment and local offset
+
 uint32_t compute_address(uint8_t segment_id, uint16_t offset) {
     if (segment_id >= MAX_SEGMENTS || offset >= SEGMENT_SIZE) {
         fprintf(stderr, "Invalid segment or offset\n");
@@ -105,10 +121,8 @@ uint32_t compute_address(uint8_t segment_id, uint16_t offset) {
     return (segment_id * SEGMENT_SIZE) + offset;
 }
 
-// =====================
 // SPI Memory Access
-// =====================
-// Modified: Use 24-bit addressing and named command macros
+
 void spi_write_byte(uint8_t segment_id, uint16_t offset, uint8_t data) {
     uint32_t address = compute_address(segment_id, offset);
 
