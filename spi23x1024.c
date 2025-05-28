@@ -1,7 +1,7 @@
 // spi23x1024.c – Segmented access driver for Microchip 23A1024
 
 /*
-SPI API for the 23K640 SRAM chip
+SPI API for the 23K1024 SRAM chip
 
 supports reading and writing in "Byte Operation"
 does not support reading status register
