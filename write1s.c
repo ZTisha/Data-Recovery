@@ -9,7 +9,7 @@
 #define SPI_DEVICE2 "/dev/spidev0.1"
 
 int main() {
-    printf("Writing 0x00 to all bytes in chip 1...\n");
+    printf("Writing 0xFF to all bytes in chip 1...\n");
     spi_set_device(SPI_DEVICE1);
     spi_init();
     spi_enable_sequential_mode();  // Ensure proper addressing
@@ -22,7 +22,7 @@ int main() {
     }
     spi_close();
 
-    printf("Writing 0x00 to all bytes in chip 2...\n");
+    printf("Writing 0xFF to all bytes in chip 2...\n");
     spi_set_device(SPI_DEVICE2);
     spi_init();
     spi_enable_sequential_mode();
@@ -35,6 +35,6 @@ int main() {
     }
     spi_close();
 
-    printf("Done writing 0s to both chips.\n");
+    printf("Done writing 1s to both chips.\n");
     return 0;
 }
