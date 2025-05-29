@@ -1,4 +1,3 @@
-// write_zeros_dualchip.c
 // Writes 0x00 to all addresses in both 23A1024 SRAM chips using segmented access
 
 #include <stdio.h>
