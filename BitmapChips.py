@@ -2,14 +2,16 @@ import os
 import csv
 from PIL import Image
 import numpy as np
+from math import isqrt, ceil
 
 # Constants
-CHIP_WIDTH = 256
-CHIP_HEIGHT = 256
+CHIP_WIDTH = 1024
+CHIP_HEIGHT = 1024
 WORD_SIZE = 8
 SAMPLES = 25
 CHIP1_END = 131070  # Chip 1: address 0 to 131069
 CHIP2_START = 131071  # Chip 2: address 131071 onward
+EXPECTED_BITS = 1048560  # 131070 bytes * 8
 
 # --- Helper Functions ---
 
@@ -28,6 +30,12 @@ def split_chip_bits(full_bits):
     chip1_bits = full_bits[:CHIP1_END * 8]
     chip2_bits = full_bits[CHIP2_START * 8:]
     return chip1_bits, chip2_bits
+
+def pad_bits(bits, target_length):
+    """Pads bit list with zeros to reach desired length."""
+    if len(bits) < target_length:
+        bits += [0] * (target_length - len(bits))
+    return bits
 
 def create_bitmap(bits, width, height):
     """Creates a black-and-white bitmap from bit array."""
@@ -51,7 +59,7 @@ def main():
     print("\nSelect Bitmap Mode:")
     print("1. Distribution Bitmap of Chip 1 or Chip 2 (25 Samples)")
     print("2. Combined Bitmap of Both Chips (25 Samples)")
-    print("3. General Image Bitmap from CSV (Image CSV Format)")
+    print("3. General Image Bitmap from CSV (any size)")
     choice = input("Enter option (1/2/3): ").strip()
 
     # Make output dir
@@ -77,6 +85,7 @@ def main():
             full_bits = read_csv_bits(file)
             chip1, chip2 = split_chip_bits(full_bits)
             chip_bits = chip1 if chip_select == "1" else chip2
+            chip_bits = pad_bits(chip_bits, CHIP_WIDTH * CHIP_HEIGHT)
             chip_samples.append(chip_bits)
 
         dist_img = create_distribution_bitmap(np.array(chip_samples), CHIP_WIDTH, CHIP_HEIGHT)
@@ -100,6 +109,8 @@ def main():
                 return
             full_bits = read_csv_bits(file)
             chip1, chip2 = split_chip_bits(full_bits)
+            chip1 = pad_bits(chip1, CHIP_WIDTH * CHIP_HEIGHT)
+            chip2 = pad_bits(chip2, CHIP_WIDTH * CHIP_HEIGHT)
             chip1_samples.append(chip1)
             chip2_samples.append(chip2)
 
@@ -120,7 +131,13 @@ def main():
             return
 
         bits = read_csv_bits(csv_file)
-        img = create_bitmap(bits, CHIP_WIDTH, CHIP_HEIGHT)
+        bitlen = len(bits)
+        side = isqrt(bitlen)
+        width = side
+        height = ceil(bitlen / width)
+        bits = pad_bits(bits, width * height)
+
+        img = create_bitmap(bits, width, height)
         outname = f"{os.path.splitext(csv_file)[0]}_image_bitmap.png"
         img.save(os.path.join(outdir, outname))
         print(f"Image bitmap saved to {outdir}/{outname}")
