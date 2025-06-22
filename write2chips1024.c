@@ -12,7 +12,7 @@
 extern void spi_set_device(const char *device);  // Add declaration for switching device
 
 int main() {
-    FILE *file = fopen("WrittenImage.csv", "r");
+    FILE *file = fopen("Aubie.csv", "r");
     if (!file) {
         perror("Failed to open CSV");
         return 1;
