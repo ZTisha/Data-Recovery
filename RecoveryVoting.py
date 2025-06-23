@@ -127,11 +127,11 @@ def main():
         recovery, shared = compare_aging(new_votes, aging_data)
 
         # Segment-wise comparison
-    segment_scores = compare_segments_to_reference(new_votes, aging_data)
+        segment_scores = compare_segments_to_reference(new_votes, aging_data)
 
-    print("\n📊 Segment-wise Recovery Rates:")
-    for i, score in enumerate(segment_scores):
-    print(f"  Segment {i+1:02}: {score:.4f}")
+        print("\n📊 Segment-wise Recovery Rates:")
+        for i, score in enumerate(segment_scores):
+        print(f"  Segment {i+1:02}: {score:.4f}")
 
         width, height = 1024, 1024
         recovered_bmp = create_recovery(new_votes, width, height)
