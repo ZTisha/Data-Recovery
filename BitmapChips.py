@@ -8,10 +8,7 @@ from math import isqrt, ceil
 CHIP_WIDTH = 1024
 CHIP_HEIGHT = 1024
 WORD_SIZE = 8
-SAMPLES = 25
-CHIP1_END = 131070  # Chip 1: address 0 to 131069
-CHIP2_START = 131071  # Chip 2: address 131071 onward
-EXPECTED_BITS = 1048560  # 131070 bytes * 8
+EXPECTED_BITS = 131070 * 8  # 1,048,560 bits per chip
 
 # --- Helper Functions ---
 
@@ -19,22 +16,29 @@ def read_csv_bits(filepath):
     """Reads a CSV and returns a flat bit list."""
     bits = []
     with open(filepath, 'r') as f:
-        next(f)  # Skip header
-        for line in f:
-            _, byte = line.strip().split(',')
+        lines = list(f)
+        if len(lines) <= 1:
+            raise ValueError(f"CSV file {filepath} is empty or has no data.")
+        for line in lines[1:]:  # Skip header
+            parts = line.strip().split(',')
+            if len(parts) < 2:
+                continue
+            _, byte = parts[:2]
             bits.extend([int(b) for b in bin(int(byte, 16))[2:].zfill(WORD_SIZE)])
     return bits
 
 def split_chip_bits(full_bits):
-    """Splits full bitstream into two chips (assumes 8 bits per address)."""
-    chip1_bits = full_bits[:CHIP1_END * 8]
-    chip2_bits = full_bits[CHIP2_START * 8:]
+    """Splits full bitstream into chip 1 and chip 2 based on address logic."""
+    chip1_bits = full_bits[0 : EXPECTED_BITS]
+    chip2_bits = full_bits[EXPECTED_BITS : EXPECTED_BITS*2]
     return chip1_bits, chip2_bits
 
 def pad_bits(bits, target_length):
-    """Pads bit list with zeros to reach desired length."""
+    """Pads or trims a bit list to a specific length."""
     if len(bits) < target_length:
         bits += [0] * (target_length - len(bits))
+    else:
+        bits = bits[:target_length]
     return bits
 
 def create_bitmap(bits, width, height):
@@ -57,8 +61,8 @@ def create_distribution_bitmap(bit_samples, width, height):
 # --- Main Menu ---
 def main():
     print("\nSelect Bitmap Mode:")
-    print("1. Distribution Bitmap of Chip 1 or Chip 2 (25 Samples)")
-    print("2. Combined Bitmap of Both Chips (25 Samples)")
+    print("1. Distribution Bitmap of Chip 1 or Chip 2 (Flexible Samples)")
+    print("2. Combined Bitmap of Both Chips (Flexible Samples)")
     print("3. General Image Bitmap from CSV (any size)")
     choice = input("Enter option (1/2/3): ").strip()
 
@@ -75,14 +79,36 @@ def main():
             print("Folder not found.")
             return
 
+        # Sample selection logic
+        print("\nSample Selection:")
+        print("1. All available samples")
+        print("2. One specific sample")
+        print("3. A range of samples")
+        sample_mode = input("Choose an option (1/2/3): ").strip()
+
+        csv_files = []
+
+        if sample_mode == "1":
+            csv_files = sorted([
+                f for f in os.listdir(folder)
+                if f.startswith(folder + "_") and f.endswith(".csv")
+            ])
+        elif sample_mode == "2":
+            sample_id = input("Enter sample number (e.g., 7): ").strip()
+            csv_files = [f"{folder}_{sample_id}.csv"]
+        elif sample_mode == "3":
+            start = int(input("Start sample number: ").strip())
+            end = int(input("End sample number: ").strip())
+            csv_files = [f"{folder}_{i}.csv" for i in range(start, end + 1)]
+        else:
+            print("Invalid sample selection.")
+            return
+
         chip_samples = []
 
-        for i in range(1, SAMPLES + 1):
-            file = os.path.join(folder, f"{folder}_{i}.csv")
-            if not os.path.exists(file):
-                print(f"Missing: {file}")
-                return
-            full_bits = read_csv_bits(file)
+        for file in csv_files:
+            full_path = os.path.join(folder, file)
+            full_bits = read_csv_bits(full_path)
             chip1, chip2 = split_chip_bits(full_bits)
             chip_bits = chip1 if chip_select == "1" else chip2
             chip_bits = pad_bits(chip_bits, CHIP_WIDTH * CHIP_HEIGHT)
@@ -100,14 +126,36 @@ def main():
             print("Folder not found.")
             return
 
+        # Sample selection logic
+        print("\nSample Selection:")
+        print("1. All available samples")
+        print("2. One specific sample")
+        print("3. A range of samples")
+        sample_mode = input("Choose an option (1/2/3): ").strip()
+
+        csv_files = []
+
+        if sample_mode == "1":
+            csv_files = sorted([
+                f for f in os.listdir(folder)
+                if f.startswith(folder + "_") and f.endswith(".csv")
+            ])
+        elif sample_mode == "2":
+            sample_id = input("Enter sample number (e.g., 7): ").strip()
+            csv_files = [f"{folder}_{sample_id}.csv"]
+        elif sample_mode == "3":
+            start = int(input("Start sample number: ").strip())
+            end = int(input("End sample number: ").strip())
+            csv_files = [f"{folder}_{i}.csv" for i in range(start, end + 1)]
+        else:
+            print("Invalid sample selection.")
+            return
+
         chip1_samples, chip2_samples = [], []
 
-        for i in range(1, SAMPLES + 1):
-            file = os.path.join(folder, f"{folder}_{i}.csv")
-            if not os.path.exists(file):
-                print(f"Missing: {file}")
-                return
-            full_bits = read_csv_bits(file)
+        for file in csv_files:
+            full_path = os.path.join(folder, file)
+            full_bits = read_csv_bits(full_path)
             chip1, chip2 = split_chip_bits(full_bits)
             chip1 = pad_bits(chip1, CHIP_WIDTH * CHIP_HEIGHT)
             chip2 = pad_bits(chip2, CHIP_WIDTH * CHIP_HEIGHT)
