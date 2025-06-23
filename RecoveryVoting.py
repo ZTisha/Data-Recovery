@@ -52,6 +52,17 @@ def compare_aging(votes, aging_data):
             shared_set.append(2)
     return match_count / len(votes), shared_set
 
+def compare_segments_to_reference(votes, ref_bits, segment_size=65536):
+    segment_results = []
+    for i in range(16):
+        start = i * segment_size
+        end = start + segment_size
+        segment = votes[start:end]
+        correct = sum([1 for a, b in zip(segment, ref_bits) if a == b])
+        accuracy = correct / segment_size
+        segment_results.append(accuracy)
+    return segment_results
+
 def read_reference_csv(filename):
     bits = []
     with open(filename, 'r') as csvfile:
@@ -73,7 +84,7 @@ def main():
             if not os.path.exists(input_dir):
                 raise FileNotFoundError("This directory does not exist.")
 
-            chip_id = input("Which chip’s data does this folder contain? (Type 1 or 2): ").strip()
+            chip_id = input("Select the Chip. (1 or 2): ").strip()
 
             new_bitlists = []
             for i in range(1, 26):
@@ -114,6 +125,13 @@ def main():
 
         aging_data = read_reference_csv('WrittenImage.csv')
         recovery, shared = compare_aging(new_votes, aging_data)
+
+        # Segment-wise comparison
+    segment_scores = compare_segments_to_reference(new_votes, aging_data)
+
+    print("\n📊 Segment-wise Recovery Rates:")
+    for i, score in enumerate(segment_scores):
+    print(f"  Segment {i+1:02}: {score:.4f}")
 
         width, height = 1024, 1024
         recovered_bmp = create_recovery(new_votes, width, height)
