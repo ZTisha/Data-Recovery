@@ -123,7 +123,7 @@ def main():
         if not os.path.exists('RECOVER_BMPs'):
             os.makedirs('RECOVER_BMPs')
 
-        aging_data = read_reference_csv('WrittenImage.csv')
+        aging_data = read_reference_csv('Aubie.csv')
         recovery, shared = compare_aging(new_votes, aging_data)
 
         # Segment-wise comparison
