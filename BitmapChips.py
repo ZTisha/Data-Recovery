@@ -48,7 +48,7 @@ def create_bitmap(bits, width, height):
         for x in range(width):
             idx = y * width + x
             if idx < len(bits):
-                img.putpixel((x, y), 1 - bits[idx])
+                img.putpixel((x, y), bits[idx])
     return img
 
 def create_distribution_bitmap(bit_samples, width, height):
