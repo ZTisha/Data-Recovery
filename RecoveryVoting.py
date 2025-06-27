@@ -1,3 +1,7 @@
+
+# ---------------------------
+# adapted from BewareVoting.py from Gaines Odom
+# ---------------------------
 import os
 import csv
 from PIL import Image
